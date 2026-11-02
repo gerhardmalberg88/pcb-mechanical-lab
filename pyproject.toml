@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcb-mechanical-lab"
+version = "0.1.0"
+description = "File-based KiCad, Gmsh, Elmer and ParaView modal and PSD workflows"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+dependencies = []
+
+[project.scripts]
+pcb-mechanical = "pcb_mechanical.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]

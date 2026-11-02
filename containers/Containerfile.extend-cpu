@@ -1,0 +1,7 @@
+# Optional acceleration using an explicitly recorded existing Elmer image.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+COPY patch-native.py MechanicalExport.F90 /opt/provenance/
+RUN python3 /opt/provenance/patch-native.py /opt/elmer-source /opt/provenance/mechanical && \
+    elmerf90 -O2 -shared -fPIC /opt/provenance/mechanical/MechanicalStress.F90 /opt/provenance/MechanicalExport.F90 -o /opt/elmer/lib/elmersolver/MechanicalStress.so && \
+    elmerf90 -O2 -shared -fPIC /opt/provenance/MechanicalExport.F90 -o /opt/elmer/lib/elmersolver/MechanicalExport.so

@@ -1,0 +1,11 @@
+PCB Mechanical Lab
+Copyright 2026 Gerhard Malberg
+
+Original software, recipes, configuration and documentation are Apache-2.0.
+Runtime and container infrastructure adapted from PCB Thermal Lab and PCB EM Lab,
+Copyright 2026 Gerhard Malberg, Apache-2.0.
+
+Third-party sources retain their licenses. Elmer modifications and derived
+modules retain the upstream (L)GPL notices. Source archives, patches and
+identities are recorded in env/ and container provenance. Imported hardware
+snapshots and physical case inputs retain their original licenses and attribution.

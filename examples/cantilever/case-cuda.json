@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "100 \u00d7 10 \u00d7 1.6 mm cantilever PCB",
+  "board": "board.kicad_pcb",
+  "output": "../../results/examples/cantilever/cuda",
+  "mounts": {
+    "kind": "cantilever",
+    "refs": []
+  },
+  "components": {
+    "enabled": false
+  },
+  "mesh": {
+    "size_mm": 3.0,
+    "mount_size_mm": 1.0,
+    "layers": 2
+  },
+  "execution": {
+    "backend": "cuda"
+  }
+}

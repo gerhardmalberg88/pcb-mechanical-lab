@@ -1,0 +1,28 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+ARG BUILD_JOBS=2
+COPY patch-eigen-amgx.py patch-native.py MechanicalExport.F90 /opt/provenance/
+RUN python3 /opt/provenance/patch-eigen-amgx.py /opt/elmer-source && \
+    cmake -S /opt/elmer-source -B /opt/elmer-mechanical-build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/elmer \
+      -DWITH_MPI=ON -DWITH_OpenMP=ON -DWITH_Hypre=ON -DHypre_INCLUDE_DIR=/usr/include/hypre \
+      -DHypre_LIBRARY=/usr/lib/x86_64-linux-gnu/libHYPRE.so -DWITH_AMGX=ON \
+      -DAMGX_INCLUDE_DIR=/opt/amgx/include -DAMGX_LIBRARY=/opt/amgx/lib/libamgxsh.so \
+      -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda -DWITH_ELMERGUI=OFF -DWITH_ELMERPOST=OFF \
+      -DWITH_CHOLMOD=ON -DCHOLMOD_INCLUDE_DIR=/usr/include/suitesparse \
+      -DCHOLMOD_LIBRARY=/usr/lib/x86_64-linux-gnu/libcholmod.so -DSPQR_LIBRARY=/usr/lib/x86_64-linux-gnu/libspqr.so \
+      '-DINCLUDE_ELMER_MODULES=SaveData;ResultOutputSolve' -DBUILD_TESTING=OFF -DHAVE_QP=OFF && \
+    cmake --build /opt/elmer-mechanical-build --parallel ${BUILD_JOBS} && \
+    cmake --install /opt/elmer-mechanical-build && \
+    cp /opt/elmer-mechanical-build/CMakeCache.txt /opt/provenance/mechanical-cuda-CMakeCache.txt && \
+    rm -rf /opt/elmer-mechanical-build
+RUN python3 /opt/provenance/patch-native.py /opt/elmer-source /opt/provenance/mechanical && \
+    elmerf90 -O2 -shared -fPIC /opt/provenance/mechanical/MechanicalStress.F90 /opt/provenance/MechanicalExport.F90 -o /opt/elmer/lib/elmersolver/MechanicalStress.so && \
+    elmerf90 -O2 -shared -fPIC /opt/provenance/MechanicalExport.F90 -o /opt/elmer/lib/elmersolver/MechanicalExport.so
+COPY wheels /opt/wheels
+# Use the existing system Python without modifying system numerical packages.
+RUN mkdir -p /opt/psd-site && python3 -c "import pathlib,zipfile; [zipfile.ZipFile(p).extractall('/opt/psd-site') for p in pathlib.Path('/opt/wheels').glob('*.whl')]" && \
+    mkdir -p /opt/psd-python/bin && \
+    printf '#!/bin/sh\nPYTHONPATH=/opt/psd-site:${PYTHONPATH} exec /usr/bin/python3 "$@"\n' > /opt/psd-python/bin/python && chmod +x /opt/psd-python/bin/python
+COPY cuda-check.cu /tmp/cuda-check.cu
+RUN nvcc -arch=sm_75 /tmp/cuda-check.cu -o /usr/local/bin/pcb-mechanical-cuda-check && rm /tmp/cuda-check.cu
